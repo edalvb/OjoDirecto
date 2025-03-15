@@ -1,6 +1,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'dart:io';
 
 List<CameraDescription> cameras = [];
 
@@ -26,28 +29,19 @@ class TeleprompterCameraPage extends StatefulWidget {
   _TeleprompterCameraPageState createState() => _TeleprompterCameraPageState();
 }
 
-// Usamos TickerProviderStateMixin en vez de SingleTickerProviderStateMixin
 class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
     with TickerProviderStateMixin {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   bool _usingRearCamera = true;
 
-  // Variables del teleprompter
   String _teleprompterText =
       "Aquí va tu guion. Habla con naturalidad y mantén la mirada en la cámara.";
-  double _teleprompterAreaHeightFactor =
-      0.2; // porcentaje del alto (o ancho) en pantalla
-  double _scrollSpeed =
-      20.0; // en segundos, indica la duración del scroll a lo largo del texto
+  double _teleprompterAreaHeightFactor = 0.2;
+  double _scrollSpeed = 20.0;
 
-  // Controlador de desplazamiento de texto
   final ScrollController _textScrollController = ScrollController();
-
-  // Controlador de animación para desplazar el texto
   AnimationController? _scrollAnimationController;
-
-  // Variables para grabación de video
   bool _isRecording = false;
 
   @override
@@ -58,31 +52,23 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
   }
 
   void _initializeCamera() {
-    // Filtramos cámaras según uso de la trasera o frontal
     final filteredCameras =
         cameras.where((camera) {
-          if (_usingRearCamera) {
+          if (_usingRearCamera)
             return camera.lensDirection == CameraLensDirection.back;
-          } else {
+          else
             return camera.lensDirection == CameraLensDirection.front;
-          }
         }).toList();
 
-    // Si hay varias, elegimos la primera (podrías elegir la de mayor resolución)
-    final selectedCamera =
-        filteredCameras.isNotEmpty ? filteredCameras.first : cameras.first;
-
-    // Inicializamos el controlador de cámara
-    _controller = CameraController(selectedCamera, ResolutionPreset.max);
+    final selectedCamera = filteredCameras.first;
+    _controller = CameraController(selectedCamera, ResolutionPreset.high);
     _initializeControllerFuture = _controller?.initialize().then((_) {
       if (mounted) setState(() {});
     });
   }
 
   void _initScrollAnimation() {
-    // Si ya existía, lo descartamos para no tener múltiples tickers
     _scrollAnimationController?.dispose();
-
     _scrollAnimationController = AnimationController(
       vsync: this,
       duration: Duration(seconds: _scrollSpeed.toInt()),
@@ -94,7 +80,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
       }
     });
 
-    // Arrancamos la animación en bucle
     _scrollAnimationController?.repeat();
   }
 
@@ -106,15 +91,22 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
     super.dispose();
   }
 
-  // Ajusta la velocidad de la animación de scroll y la reinicia
   void _updateScrollSpeed(double newSpeed) {
     setState(() {
       _scrollSpeed = newSpeed;
-      _initScrollAnimation();
+
+      // NUEVO: Modificamos Solo la duración, NO reiniciamos el teleprompter desde el inicio
+      final currentProgress = _scrollAnimationController!.value;
+      _scrollAnimationController!.duration = Duration(
+        seconds: _scrollSpeed.toInt(),
+      );
+      _scrollAnimationController!
+        ..reset()
+        ..forward(from: currentProgress);
+      _scrollAnimationController?.repeat();
     });
   }
 
-  // Editar el texto del teleprompter
   void _editTeleprompterText() {
     final editingController = TextEditingController(text: _teleprompterText);
     showDialog(
@@ -132,6 +124,7 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
                 onPressed: () {
                   setState(() {
                     _teleprompterText = editingController.text;
+                    _initScrollAnimation();
                   });
                   Navigator.pop(context);
                 },
@@ -146,7 +139,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
     );
   }
 
-  // Cambiar de cámara (delantera <-> trasera)
   void _toggleCamera() {
     setState(() {
       _usingRearCamera = !_usingRearCamera;
@@ -155,24 +147,27 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
     });
   }
 
-  // Iniciar/Detener grabación
   Future<void> _toggleRecording() async {
     if (_controller == null) return;
 
     if (_isRecording) {
-      // Detener grabación
       final XFile file = await _controller!.stopVideoRecording();
       setState(() => _isRecording = false);
 
-      // Puedes mostrar un SnackBar o hacer algo más con el archivo grabado
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Grabación detenida. Video guardado en: ${file.path}'),
-          duration: Duration(seconds: 2),
+          content: Text('📁: ${file.path}'),
+          duration: Duration(seconds: 3),
+          action: SnackBarAction(
+            label: "Abrir",
+            onPressed: () {
+              // NUEVO: abrir carpeta con el archivo grabado (usando open_file)
+              OpenFile.open(File(file.path).parent.path);
+            },
+          ),
         ),
       );
     } else {
-      // Iniciar grabación
       await _controller!.startVideoRecording();
       setState(() => _isRecording = true);
     }
@@ -180,15 +175,7 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Ajusta el contenedor del teleprompter según orientación
-    final teleprompterAreaHeight =
-        orientation == Orientation.portrait
-            ? screenHeight * _teleprompterAreaHeightFactor
-            : screenWidth * _teleprompterAreaHeightFactor;
 
     return Scaffold(
       appBar: AppBar(
@@ -198,7 +185,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
           IconButton(icon: Icon(Icons.switch_camera), onPressed: _toggleCamera),
         ],
       ),
-      // Botón para grabar o detener grabación
       floatingActionButton: FloatingActionButton(
         backgroundColor: _isRecording ? Colors.red : Colors.blue,
         onPressed: _toggleRecording,
@@ -207,39 +193,30 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
-          // Cuando la cámara esté lista
           if (snapshot.connectionState == ConnectionState.done &&
-              _controller?.value.isInitialized == true) {
+              _controller!.value.isInitialized) {
             return Stack(
               children: [
-                // Vista previa de la cámara
                 CameraPreview(_controller!),
 
-                // Área inferior (o lateral) para el teleprompter
+                // NUEVO: Teleprompter en la parte superior.
                 Align(
-                  alignment: Alignment.bottomCenter,
+                  alignment: Alignment.topCenter,
                   child: GestureDetector(
                     onVerticalDragUpdate: (details) {
                       setState(() {
-                        _teleprompterAreaHeightFactor -=
+                        _teleprompterAreaHeightFactor +=
                             details.delta.dy / screenHeight;
-
-                        // Limitar entre 0.1 y 0.5, por ejemplo
-                        if (_teleprompterAreaHeightFactor < 0.1) {
-                          _teleprompterAreaHeightFactor = 0.1;
-                        }
-                        if (_teleprompterAreaHeightFactor > 0.5) {
-                          _teleprompterAreaHeightFactor = 0.5;
-                        }
+                        _teleprompterAreaHeightFactor =
+                            _teleprompterAreaHeightFactor.clamp(0.1, 0.5);
                       });
                     },
                     child: Container(
                       width: double.infinity,
-                      height: teleprompterAreaHeight,
-                      color: Colors.black.withOpacity(0.3),
+                      height: screenHeight * _teleprompterAreaHeightFactor,
+                      color: Colors.black.withOpacity(0.45),
                       child: SingleChildScrollView(
                         controller: _textScrollController,
-                        scrollDirection: Axis.vertical,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
@@ -252,9 +229,8 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
                   ),
                 ),
 
-                // Botones para ajustar la velocidad del teleprompter
                 Positioned(
-                  top: 50,
+                  bottom: 50,
                   right: 20,
                   child: Column(
                     children: [
@@ -265,7 +241,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
                             ),
                         child: Text('+ Velocidad'),
                       ),
-                      SizedBox(height: 10),
                       ElevatedButton(
                         onPressed:
                             () => _updateScrollSpeed(
@@ -279,7 +254,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
               ],
             );
           } else {
-            // Mientras inicializa la cámara
             return Center(child: CircularProgressIndicator());
           }
         },
