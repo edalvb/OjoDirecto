@@ -1,9 +1,8 @@
 import 'package:camera/camera.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import 'dart:io';
 
 List<CameraDescription> cameras = [];
 
@@ -14,6 +13,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,6 +26,8 @@ class MyApp extends StatelessWidget {
 }
 
 class TeleprompterCameraPage extends StatefulWidget {
+  const TeleprompterCameraPage({super.key});
+
   @override
   _TeleprompterCameraPageState createState() => _TeleprompterCameraPageState();
 }
@@ -54,14 +57,16 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
   void _initializeCamera() {
     final filteredCameras =
         cameras.where((camera) {
-          if (_usingRearCamera)
+          if (_usingRearCamera) {
             return camera.lensDirection == CameraLensDirection.back;
-          else
+          } else {
             return camera.lensDirection == CameraLensDirection.front;
+          }
         }).toList();
 
     final selectedCamera = filteredCameras.first;
-    _controller = CameraController(selectedCamera, ResolutionPreset.high);
+    _controller =
+        _controller = CameraController(selectedCamera, ResolutionPreset.max);
     _initializeControllerFuture = _controller?.initialize().then((_) {
       if (mounted) setState(() {});
     });
@@ -95,7 +100,7 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
     setState(() {
       _scrollSpeed = newSpeed;
 
-      // NUEVO: Modificamos Solo la duración, NO reiniciamos el teleprompter desde el inicio
+      // Se modifica solo la duración sin reiniciar el teleprompter desde el inicio
       final currentProgress = _scrollAnimationController!.value;
       _scrollAnimationController!.duration = Duration(
         seconds: _scrollSpeed.toInt(),
@@ -148,28 +153,54 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
   }
 
   Future<void> _toggleRecording() async {
-    if (_controller == null) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
 
-    if (_isRecording) {
-      final XFile file = await _controller!.stopVideoRecording();
-      setState(() => _isRecording = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('📁: ${file.path}'),
-          duration: Duration(seconds: 3),
-          action: SnackBarAction(
-            label: "Abrir",
-            onPressed: () {
-              // NUEVO: abrir carpeta con el archivo grabado (usando open_file)
-              OpenFile.open(File(file.path).parent.path);
-            },
-          ),
-        ),
-      );
+    if (_controller!.value.isRecordingVideo) {
+      await _saveVideo();
     } else {
       await _controller!.startVideoRecording();
       setState(() => _isRecording = true);
+    }
+  }
+
+  Future<void> _saveVideo() async {
+    try {
+      final XFile tempFile = await _controller!.stopVideoRecording();
+      setState(() => _isRecording = false);
+
+      final String? dirPath = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: "Selecciona la carpeta para guardar",
+      );
+
+      if (dirPath != null) {
+        final newFilePath =
+            '$dirPath/${DateTime.now().millisecondsSinceEpoch}.mp4';
+        await tempFile.saveTo(newFilePath);
+
+        OpenFile.open(newFilePath);
+
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Guardado en: $newFilePath')));
+        }
+      }
+    } catch (e) {
+      print(e);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar el video'),
+            action: SnackBarAction(
+              label: 'Intentar de nuevo',
+              onPressed: () {
+                _saveVideo();
+              },
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -198,8 +229,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
             return Stack(
               children: [
                 CameraPreview(_controller!),
-
-                // NUEVO: Teleprompter en la parte superior.
                 Align(
                   alignment: Alignment.topCenter,
                   child: GestureDetector(
@@ -228,7 +257,6 @@ class _TeleprompterCameraPageState extends State<TeleprompterCameraPage>
                     ),
                   ),
                 ),
-
                 Positioned(
                   bottom: 50,
                   right: 20,
