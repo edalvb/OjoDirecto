@@ -31,18 +31,15 @@ ThemeData _applyShared(ThemeData base, {required bool dark}) {
   final surf = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
   final onPrimary = Colors.white;
   final onSecondary = isDark ? Colors.black : Colors.black;
-  final onBg = isDark ? Colors.white : Colors.black;
   final onSurf = isDark ? Colors.white : Colors.black;
   final scheme = base.colorScheme.copyWith(
     primary: AppColors.primary,
     secondary: AppColors.accent,
     surface: surf,
-    background: bg,
     error: AppColors.error,
     onPrimary: onPrimary,
     onSecondary: onSecondary,
     onSurface: onSurf,
-    onBackground: onBg,
     onError: Colors.white,
     brightness: isDark ? Brightness.dark : Brightness.light,
   );
@@ -82,7 +79,7 @@ ThemeData _applyShared(ThemeData base, {required bool dark}) {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
-      hintStyle: TextStyle(color: onSurf.withOpacity(0.5)),
+      hintStyle: TextStyle(color: onSurf.withValues(alpha: 0.5)),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: surf,
@@ -95,7 +92,11 @@ ThemeData _applyShared(ThemeData base, {required bool dark}) {
     sliderTheme: base.sliderTheme.copyWith(
       activeTrackColor: AppColors.primary,
       thumbColor: AppColors.accent,
-      inactiveTrackColor: AppColors.primary.withOpacity(0.3),
+      inactiveTrackColor: Color.lerp(
+        AppColors.primary,
+        Colors.transparent,
+        0.3,
+      ),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.primary,

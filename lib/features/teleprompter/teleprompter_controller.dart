@@ -57,8 +57,9 @@ class TeleprompterController {
   Future<void> toggleRecording() async {
     final store = ref.read(teleprompterStoreProvider);
     if (store.cameraController == null ||
-        !store.cameraController!.value.isInitialized)
+        !store.cameraController!.value.isInitialized) {
       return;
+    }
     if (store.cameraController!.value.isRecordingVideo) {
       await _saveVideo();
     } else {

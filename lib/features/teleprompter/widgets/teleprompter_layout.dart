@@ -71,7 +71,7 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
             child: Container(
               width: double.infinity,
               height: h * data.areaFactor,
-              color: Colors.black.withOpacity(0.45),
+              color: Colors.black.withValues(alpha: 0.45),
               child: SingleChildScrollView(
                 controller: store.textScrollController,
                 child: Padding(
