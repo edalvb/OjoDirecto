@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:ojodirecto/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'teleprompter_controller.dart';
 import 'teleprompter_states.dart';
@@ -15,7 +15,7 @@ class TeleprompterView extends ConsumerWidget {
     final controller = ref.read(teleprompterControllerProvider);
     final states = ref.watch(teleprompterStatesProvider);
     final store = ref.watch(teleprompterStoreProvider);
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(t.appTitle),
@@ -67,6 +67,7 @@ class TeleprompterView extends ConsumerWidget {
   }
 
   void _editScript(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final current = ref.read(teleprompterStatesProvider).script;
     final controller = TextEditingController(text: current);
     showDialog(

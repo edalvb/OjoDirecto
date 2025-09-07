@@ -4,7 +4,7 @@ import '../features/teleprompter/teleprompter_view.dart';
 import 'app_theme.dart';
 import 'app_theme_states.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:ojodirecto/l10n/app_localizations.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});

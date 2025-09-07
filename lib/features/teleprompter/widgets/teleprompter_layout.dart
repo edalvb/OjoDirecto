@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:ojodirecto/l10n/app_localizations.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../teleprompter_store.dart';
@@ -93,12 +93,12 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
               ElevatedButton(
                 onPressed:
                     () => controller.updateScrollSpeed(data.scrollSpeed - 2),
-                child: Text(t?.speedIncrease ?? '+'),
+                child: Text(t.speedIncrease),
               ),
               ElevatedButton(
                 onPressed:
                     () => controller.updateScrollSpeed(data.scrollSpeed + 2),
-                child: Text(t?.speedDecrease ?? '-'),
+                child: Text(t.speedDecrease),
               ),
             ],
           ),
