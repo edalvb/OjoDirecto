@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'teleprompter_controller.dart';
 import 'teleprompter_states.dart';
 import 'widgets/teleprompter_layout.dart';
+import '../../app/app_theme_states.dart';
 import 'teleprompter_store.dart';
 
 class TeleprompterView extends ConsumerWidget {
@@ -17,6 +18,15 @@ class TeleprompterView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('OjoDirecto'),
         actions: [
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed:
+                () => ref.read(appThemeStatesProvider.notifier).toggleMode(),
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => _editScript(context, ref),
