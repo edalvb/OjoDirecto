@@ -15,19 +15,26 @@ class _TeleprompterEditorLayoutState
     extends ConsumerState<TeleprompterEditorLayout> {
   late TextEditingController controller;
   double fontSize = 20;
+  ProviderSubscription<TeleprompterStatesData>? _statesSub;
   @override
   void initState() {
     super.initState();
     final s = ref.read(teleprompterStatesProvider);
     controller = TextEditingController(text: s.draftScript);
+    // Escuchar cambios del draft fuera de build
+    _statesSub = ref.listenManual<TeleprompterStatesData>(
+      teleprompterStatesProvider,
+      (prev, next) {
+        if (controller.text != next.draftScript) {
+          controller.text = next.draftScript;
+        }
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    ref.listen(teleprompterStatesProvider, (p, n) {
-      if (controller.text != n.draftScript) controller.text = n.draftScript;
-    });
     final s = ref.watch(teleprompterStatesProvider);
     return Column(
       children: [
@@ -72,5 +79,12 @@ class _TeleprompterEditorLayoutState
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _statesSub?.close();
+    controller.dispose();
+    super.dispose();
   }
 }

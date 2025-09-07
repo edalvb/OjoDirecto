@@ -15,6 +15,7 @@ class TeleprompterLayout extends ConsumerStatefulWidget {
 class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
     with SingleTickerProviderStateMixin {
   late final AnimationController _scrollTicker;
+  late final ProviderSubscription<TeleprompterStatesData> _statesSub;
 
   @override
   void initState() {
@@ -28,33 +29,31 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
           ..addListener(_onTick)
           ..repeat();
 
-    // Escuchar cambios de velocidad una sola vez (no dentro de build)
-    ref.listen<TeleprompterStatesData>(teleprompterStatesProvider, (
-      prev,
-      next,
-    ) {
-      if (prev?.scrollSpeed != next.scrollSpeed) {
-        // Ajuste suave: no resetear progreso; cambiar duration y re-sincronizar.
-        final progress = _scrollTicker.value;
-        final wasAnimating = _scrollTicker.isAnimating;
-        _scrollTicker.stop();
-        _scrollTicker.duration = Duration(seconds: next.scrollSpeed.toInt());
-        if (wasAnimating && next.playing) {
-          // Reanudar desde el mismo valor proporcional.
-          _scrollTicker.forward(from: progress);
-          _scrollTicker.repeat();
-        }
-      }
-      if (prev?.playing != next.playing) {
-        if (next.playing) {
-          if (!_scrollTicker.isAnimating) {
+    // Escuchar cambios del provider fuera de build usando listenManual (ref.listen solo dentro de build)
+    _statesSub = ref.listenManual<TeleprompterStatesData>(
+      teleprompterStatesProvider,
+      (prev, next) {
+        if (prev?.scrollSpeed != next.scrollSpeed) {
+          final progress = _scrollTicker.value;
+          final wasAnimating = _scrollTicker.isAnimating;
+          _scrollTicker.stop();
+          _scrollTicker.duration = Duration(seconds: next.scrollSpeed.toInt());
+          if (wasAnimating && next.playing) {
+            _scrollTicker.forward(from: progress);
             _scrollTicker.repeat();
           }
-        } else {
-          _scrollTicker.stop();
         }
-      }
-    });
+        if (prev?.playing != next.playing) {
+          if (next.playing) {
+            if (!_scrollTicker.isAnimating) {
+              _scrollTicker.repeat();
+            }
+          } else {
+            _scrollTicker.stop();
+          }
+        }
+      },
+    );
   }
 
   void _onTick() {
@@ -68,6 +67,7 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
 
   @override
   void dispose() {
+    _statesSub.close();
     _scrollTicker.dispose();
     super.dispose();
   }
