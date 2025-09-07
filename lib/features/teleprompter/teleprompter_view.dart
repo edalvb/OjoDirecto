@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'teleprompter_controller.dart';
 import 'teleprompter_states.dart';
@@ -14,9 +15,10 @@ class TeleprompterView extends ConsumerWidget {
     final controller = ref.read(teleprompterControllerProvider);
     final states = ref.watch(teleprompterStatesProvider);
     final store = ref.watch(teleprompterStoreProvider);
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OjoDirecto'),
+        title: Text(t.appTitle),
         actions: [
           IconButton(
             icon: Icon(
@@ -71,13 +73,11 @@ class TeleprompterView extends ConsumerWidget {
       context: context,
       builder:
           (c) => AlertDialog(
-            title: const Text('Editar guion'),
+            title: Text(t.editScript),
             content: TextField(
               controller: controller,
               maxLines: 5,
-              decoration: const InputDecoration(
-                hintText: 'Escribe tu guion aquí...',
-              ),
+              decoration: InputDecoration(hintText: t.scriptHint),
             ),
             actions: [
               TextButton(
@@ -87,11 +87,11 @@ class TeleprompterView extends ConsumerWidget {
                       .updateScript(controller.text);
                   Navigator.pop(c);
                 },
-                child: const Text('Guardar'),
+                child: Text(t.save),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(c),
-                child: const Text('Cancelar'),
+                child: Text(t.cancel),
               ),
             ],
           ),

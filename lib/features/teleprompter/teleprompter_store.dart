@@ -9,6 +9,7 @@ class TeleprompterStore {
   Future<void>? cameraInitFuture;
   List<CameraDescription> available = const [];
   bool usingRear = true;
+  String folderDialogTitle = 'selectFolderDialog';
   void dispose() {
     textScrollController.dispose();
     scriptController.dispose();

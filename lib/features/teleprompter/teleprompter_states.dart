@@ -31,8 +31,7 @@ class TeleprompterStates extends StateNotifier<TeleprompterStatesData> {
           recording: false,
           scrollSpeed: 20,
           areaFactor: 0.2,
-          script:
-              'Aquí va tu guion. Habla con naturalidad y mantén la mirada en la cámara.',
+          script: 'defaultScript',
         ),
       );
   void setRecording(bool v) => state = state.copyWith(recording: v);

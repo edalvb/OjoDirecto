@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../teleprompter_store.dart';
@@ -54,6 +55,7 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
     });
     final controller = ref.read(teleprompterControllerProvider);
     final h = MediaQuery.of(context).size.height;
+    final t = AppLocalizations.of(context);
     return Stack(
       children: [
         if (store.cameraController != null &&
@@ -91,12 +93,12 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
               ElevatedButton(
                 onPressed:
                     () => controller.updateScrollSpeed(data.scrollSpeed - 2),
-                child: const Text('+ Velocidad'),
+                child: Text(t?.speedIncrease ?? '+'),
               ),
               ElevatedButton(
                 onPressed:
                     () => controller.updateScrollSpeed(data.scrollSpeed + 2),
-                child: const Text('- Velocidad'),
+                child: Text(t?.speedDecrease ?? '-'),
               ),
             ],
           ),

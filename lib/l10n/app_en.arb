@@ -1,0 +1,12 @@
+{
+  "@@locale": "en",
+  "appTitle": "OjoDirecto",
+  "editScript": "Edit script",
+  "save": "Save",
+  "cancel": "Cancel",
+  "scriptHint": "Write your script here...",
+  "speedIncrease": "+ Speed",
+  "speedDecrease": "- Speed",
+  "selectFolderDialog": "Select a folder to save",
+  "defaultScript": "Place your script here. Speak naturally and keep your eyes on the camera."
+}

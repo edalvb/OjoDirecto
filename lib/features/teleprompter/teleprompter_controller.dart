@@ -73,7 +73,7 @@ class TeleprompterController {
       final file = await store.cameraController!.stopVideoRecording();
       ref.read(teleprompterStatesProvider.notifier).setRecording(false);
       final dir = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: 'Selecciona la carpeta para guardar',
+        dialogTitle: store.folderDialogTitle,
       );
       if (dir != null) {
         final path = '$dir/${DateTime.now().millisecondsSinceEpoch}.mp4';
