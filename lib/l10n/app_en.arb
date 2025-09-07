@@ -7,6 +7,8 @@
   "scriptHint": "Write your script here...",
   "speedIncrease": "+ Speed",
   "speedDecrease": "- Speed",
+  "play": "Play",
+  "pause": "Pause",
   "selectFolderDialog": "Select a folder to save",
   "defaultScript": "Place your script here. Speak naturally and keep your eyes on the camera."
 }

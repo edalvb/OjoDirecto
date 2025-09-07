@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'- Speed'**
   String get speedDecrease;
 
+  /// No description provided for @play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get play;
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
   /// No description provided for @selectFolderDialog.
   ///
   /// In en, this message translates to:

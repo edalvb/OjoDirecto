@@ -7,6 +7,8 @@
   "scriptHint": "Escribe tu guion aquí...",
   "speedIncrease": "+ Velocidad",
   "speedDecrease": "- Velocidad",
+  "play": "Reanudar",
+  "pause": "Pausa",
   "selectFolderDialog": "Selecciona la carpeta para guardar",
   "defaultScript": "Aquí va tu guion. Habla con naturalidad y mantén la mirada en la cámara."
 }

@@ -54,6 +54,35 @@ class TeleprompterController {
     ref.read(teleprompterStatesProvider.notifier).setScript(script);
   }
 
+  void startScriptEditing() {
+    ref.read(teleprompterStatesProvider.notifier).beginEditing();
+  }
+
+  void updateDraftScript(String value) {
+    ref.read(teleprompterStatesProvider.notifier).setDraftScript(value);
+  }
+
+  void saveDraftScript() {
+    ref.read(teleprompterStatesProvider.notifier).commitDraft();
+  }
+
+  void cancelDraftScript() {
+    ref.read(teleprompterStatesProvider.notifier).discardDraft();
+  }
+
+  void pauseScrolling() {
+    ref.read(teleprompterStatesProvider.notifier).setPlaying(false);
+  }
+
+  void resumeScrolling() {
+    ref.read(teleprompterStatesProvider.notifier).setPlaying(true);
+  }
+
+  void toggleScrolling() {
+    final s = ref.read(teleprompterStatesProvider);
+    ref.read(teleprompterStatesProvider.notifier).setPlaying(!s.playing);
+  }
+
   Future<void> toggleRecording() async {
     final store = ref.read(teleprompterStoreProvider);
     if (store.cameraController == null ||

@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speedDecrease => '- Speed';
 
   @override
+  String get play => 'Play';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
   String get selectFolderDialog => 'Select a folder to save';
 
   @override

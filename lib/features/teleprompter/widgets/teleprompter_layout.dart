@@ -14,35 +14,61 @@ class TeleprompterLayout extends ConsumerStatefulWidget {
 
 class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
     with SingleTickerProviderStateMixin {
-  AnimationController? scrollController;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initAnimation();
-  }
+  late final AnimationController _scrollTicker;
 
-  void _initAnimation() {
-    scrollController?.dispose();
+  @override
+  void initState() {
+    super.initState();
     final s = ref.read(teleprompterStatesProvider);
-    scrollController =
+    _scrollTicker =
         AnimationController(
             vsync: this,
             duration: Duration(seconds: s.scrollSpeed.toInt()),
           )
           ..addListener(_onTick)
           ..repeat();
+
+    // Escuchar cambios de velocidad una sola vez (no dentro de build)
+    ref.listen<TeleprompterStatesData>(teleprompterStatesProvider, (
+      prev,
+      next,
+    ) {
+      if (prev?.scrollSpeed != next.scrollSpeed) {
+        // Ajuste suave: no resetear progreso; cambiar duration y re-sincronizar.
+        final progress = _scrollTicker.value;
+        final wasAnimating = _scrollTicker.isAnimating;
+        _scrollTicker.stop();
+        _scrollTicker.duration = Duration(seconds: next.scrollSpeed.toInt());
+        if (wasAnimating && next.playing) {
+          // Reanudar desde el mismo valor proporcional.
+          _scrollTicker.forward(from: progress);
+          _scrollTicker.repeat();
+        }
+      }
+      if (prev?.playing != next.playing) {
+        if (next.playing) {
+          if (!_scrollTicker.isAnimating) {
+            _scrollTicker.repeat();
+          }
+        } else {
+          _scrollTicker.stop();
+        }
+      }
+    });
   }
 
   void _onTick() {
     final store = ref.read(teleprompterStoreProvider);
     if (!store.textScrollController.hasClients) return;
     final max = store.textScrollController.position.maxScrollExtent;
-    store.textScrollController.jumpTo(scrollController!.value * max);
+    final playing = ref.read(teleprompterStatesProvider).playing;
+    if (!playing) return; // no mover si está en pausa
+    store.textScrollController.jumpTo(_scrollTicker.value * max);
   }
 
   @override
   void dispose() {
-    scrollController?.dispose();
+    _scrollTicker.dispose();
     super.dispose();
   }
 
@@ -50,9 +76,6 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
   Widget build(BuildContext context) {
     final store = ref.watch(teleprompterStoreProvider);
     final data = ref.watch(teleprompterStatesProvider);
-    ref.listen(teleprompterStatesProvider, (prev, next) {
-      if (prev?.scrollSpeed != next.scrollSpeed) _initAnimation();
-    });
     final controller = ref.read(teleprompterControllerProvider);
     final h = MediaQuery.of(context).size.height;
     final t = AppLocalizations.of(context);
@@ -91,13 +114,17 @@ class _TeleprompterLayoutState extends ConsumerState<TeleprompterLayout>
           child: Column(
             children: [
               ElevatedButton(
-                onPressed:
-                    () => controller.updateScrollSpeed(data.scrollSpeed - 2),
-                child: Text(t.speedIncrease),
+                onPressed: controller.toggleScrolling,
+                child: Text(data.playing ? t.pause : t.play),
               ),
               ElevatedButton(
                 onPressed:
                     () => controller.updateScrollSpeed(data.scrollSpeed + 2),
+                child: Text(t.speedIncrease),
+              ),
+              ElevatedButton(
+                onPressed:
+                    () => controller.updateScrollSpeed(data.scrollSpeed - 2),
                 child: Text(t.speedDecrease),
               ),
             ],

@@ -6,6 +6,7 @@ import 'teleprompter_states.dart';
 import 'widgets/teleprompter_layout.dart';
 import '../../app/app_theme_states.dart';
 import 'teleprompter_store.dart';
+import 'teleprompter_editor_view.dart';
 
 class TeleprompterView extends ConsumerWidget {
   const TeleprompterView({super.key});
@@ -31,7 +32,7 @@ class TeleprompterView extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => _editScript(context, ref),
+            onPressed: () => _openEditor(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.switch_camera),
@@ -66,36 +67,11 @@ class TeleprompterView extends ConsumerWidget {
     );
   }
 
-  void _editScript(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context);
-    final current = ref.read(teleprompterStatesProvider).script;
-    final controller = TextEditingController(text: current);
-    showDialog(
-      context: context,
-      builder:
-          (c) => AlertDialog(
-            title: Text(t.editScript),
-            content: TextField(
-              controller: controller,
-              maxLines: 5,
-              decoration: InputDecoration(hintText: t.scriptHint),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  ref
-                      .read(teleprompterControllerProvider)
-                      .updateScript(controller.text);
-                  Navigator.pop(c);
-                },
-                child: Text(t.save),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(c),
-                child: Text(t.cancel),
-              ),
-            ],
-          ),
+  void _openEditor(BuildContext context, WidgetRef ref) {
+    ref.read(teleprompterControllerProvider).startScriptEditing();
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const TeleprompterEditorView()),
     );
   }
 }
