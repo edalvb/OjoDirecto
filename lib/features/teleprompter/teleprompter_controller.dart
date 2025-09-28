@@ -19,20 +19,40 @@ class TeleprompterController {
   }
 
   CameraDescription _currentCameraDescription(TeleprompterStore store) {
-    final list =
-        store.available
-            .where(
-              (c) =>
-                  store.usingRear
-                      ? c.lensDirection == CameraLensDirection.back
-                      : c.lensDirection == CameraLensDirection.front,
-            )
-            .toList();
-    return list.first;
+    if (store.available.isEmpty) {
+      throw StateError('No cameras available');
+    }
+
+    bool matchesDesiredLens(CameraDescription camera) {
+      final lens = camera.lensDirection;
+      if (lens == CameraLensDirection.external) {
+        return true;
+      }
+      return store.usingRear
+          ? lens == CameraLensDirection.back
+          : lens == CameraLensDirection.front;
+    }
+
+    final matching = store.available.firstWhere(
+      matchesDesiredLens,
+      orElse: () => store.available.first,
+    );
+
+    // Sync the desired state with the actual camera we could obtain.
+    if (matching.lensDirection == CameraLensDirection.back) {
+      store.usingRear = true;
+    } else if (matching.lensDirection == CameraLensDirection.front) {
+      store.usingRear = false;
+    }
+
+    return matching;
   }
 
   Future<void> toggleCamera() async {
     final store = ref.read(teleprompterStoreProvider);
+    if (store.available.length <= 1) {
+      return;
+    }
     store.usingRear = !store.usingRear;
     await store.cameraController?.dispose();
     final selected = _currentCameraDescription(store);
