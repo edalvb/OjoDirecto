@@ -55,12 +55,14 @@ class TeleprompterStates extends StateNotifier<TeleprompterStatesData> {
   void setScript(String v) => state = state.copyWith(script: v);
   void beginEditing() =>
       state = state.copyWith(draftScript: state.script, editing: true);
-  void setDraftScript(String v) => state = state.copyWith(draftScript: v);
+  void setDraftScript(String v) =>
+    state = state.copyWith(draftScript: v, script: v);
   void commitDraft() =>
       state = state.copyWith(script: state.draftScript, editing: false);
   void discardDraft() =>
       state = state.copyWith(draftScript: state.script, editing: false);
   void setPlaying(bool v) => state = state.copyWith(playing: v);
+  void endEditing() => state = state.copyWith(editing: false);
 }
 
 final teleprompterStatesProvider =

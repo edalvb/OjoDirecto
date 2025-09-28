@@ -11,30 +11,31 @@ class TeleprompterEditorView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     final s = ref.watch(teleprompterStatesProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.editScript),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () {
-              ref.read(teleprompterControllerProvider).saveDraftScript();
-              Navigator.of(context).pop();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              ref.read(teleprompterControllerProvider).cancelDraftScript();
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
+    final controller = ref.read(teleprompterControllerProvider);
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          controller.finishScriptEditing();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(t.editScript),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              },
+            ),
+          ],
+        ),
+        body:
+            s.editing
+                ? const TeleprompterEditorLayout()
+                : const SizedBox.shrink(),
       ),
-      body:
-          s.editing
-              ? const TeleprompterEditorLayout()
-              : const SizedBox.shrink(),
     );
   }
 }

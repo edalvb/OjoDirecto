@@ -87,7 +87,11 @@ class TeleprompterController {
   }
 
   void cancelDraftScript() {
-    ref.read(teleprompterStatesProvider.notifier).discardDraft();
+    finishScriptEditing();
+  }
+
+  void finishScriptEditing() {
+    ref.read(teleprompterStatesProvider.notifier).endEditing();
   }
 
   void pauseScrolling() {
