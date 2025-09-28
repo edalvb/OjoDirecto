@@ -13,11 +13,13 @@ class TeleprompterEditorView extends ConsumerWidget {
     final s = ref.watch(teleprompterStatesProvider);
     final controller = ref.read(teleprompterControllerProvider);
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, _) {
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          controller.finishScriptEditing();
+          return;
         }
+        controller.finishScriptEditing();
+        Navigator.of(context).pop(result);
       },
       child: Scaffold(
         appBar: AppBar(
